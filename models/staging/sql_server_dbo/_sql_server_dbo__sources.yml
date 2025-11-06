@@ -1,0 +1,310 @@
+version: 2
+
+sources:
+
+  - name: sql_server_dbo
+    schema: sql_server_dbo 
+    database: ALUMNO5_DEV_BRONZE_DB
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: {count: 500, period: day}
+      error_after: {count: 700, period: day}
+
+    tables:
+
+      - name: addresses
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: addresses_id
+            data_tests:
+              - unique
+              - not_null
+          - name: zipcode
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_match_regex: 
+                  regex: '^\\d+$'
+          - name: country
+            data_tests:
+              - not_null
+          - name: address
+            data_tests:
+              - not_null
+          - name: state
+            data_tests:
+              - not_null
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
+      - name: events
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: event_id
+            data_tests:
+              - unique
+              - not_null
+          - name: page_url
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: '^https?://.+'
+          - name: event_type
+            data_tests:
+              - not_null
+              - accepted_values: 
+                  arguments:
+                    values: ['package_shipped', 'add_to_cart', 'checkout', 'page_view'] 
+          - name: user_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','users')
+                  field: user_id
+          - name: product_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','products')
+                  field: product_id
+          - name: session_id
+            data_tests:
+              - not_null
+          - name: created_at
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_NTZ
+          - name: order_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','orders')
+                  field: order_id
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+                - not_null
+
+      - name: orders
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: order_id
+            data_tests:
+              - unique
+              - not_null
+          - name: shipping_service
+            data_tests:
+              - not_null
+          - name: shipping_cost
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: float
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: address_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','addresses')
+                  field: address_id
+          - name: created_at
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_TZ
+          - name: promo_id
+            data_tests:
+              - relationships:
+                  to: source('sql_server_dbo','promos')
+                  field: promo_id
+          - name: estimated_delivery_at
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_TZ
+          - name: order_cost
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: float
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: user_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','users')
+                  field: user_id
+          - name: order_total
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: float
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: delivered_at
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_TZ
+          - name: tracking_id
+            data_tests:
+              - not_null
+              - unique
+          - name: status
+            data_tests:
+              - not_null
+              - accepted_values: 
+                  arguments:
+                    values: ['delivered', 'preparing', 'shipped']
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
+
+      - name: order_items
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: order_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','orders')
+                  field: order_id
+          - name: product_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','products')
+                  field: product_id
+          - name: quantity
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: number
+              - dbt_expectations.expect_column_values_to_be_between:
+                   min_value: 1
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns: ['order_id','product_id']
+
+      - name: products
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: product_id
+            data_tests:
+              - unique
+              - not_null
+          - name: price
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: float
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: name
+            data_tests:
+              - not_null
+          - name: inventory
+            data_tests:
+                - not_null
+                - dbt_expectations.expect_column_values_to_be_of_type:
+                    column_type: number
+                - dbt_expectations.expect_column_values_to_be_between:
+                    min_value: 0
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
+
+      - name: promos
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: promo_id
+            data_tests:
+              - unique
+              - not_null
+          - name: discount
+            data_tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type: number
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: status
+            data_tests:
+              - not_null
+              - accepted_values: 
+                  arguments:
+                    values: ['active', 'inactive']
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
+
+      - name: users
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: user_id
+            data_tests:
+                - unique
+                - not_null
+          - name: updated_at
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_TZ
+          - name: address_id
+            data_tests:
+                - not_null
+                - relationships:
+                    to: source('sql_server_dbo','addresses')
+                    field: address_id
+          - name: last_name
+            data_tests:
+              - not_null
+          - name: created_at
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_of_type:
+                  column_type:  TIMESTAMP_TZ
+          - name: phone_number
+            data_tests:
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: '^\\d{3}-\\d{3}-\\d{4}$'
+          - name: total_orders
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: first_name
+            data_tests:
+              - not_null
+          - name: email
+            data_tests:
+              - not_null
+              - unique
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+          - name: _fivetran_deleted
+            data_tests:
+              - dbt_expectations.expect_column_values_to_be_null
+          - name: _fivetran_synced
+            data_tests:
+              - not_null
