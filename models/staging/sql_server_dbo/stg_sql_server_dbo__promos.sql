@@ -9,18 +9,20 @@ with source as (
 
 transformed as (
     select
-        md5(promo_id) as promo_id,         
+        {{ dbt_utils.generate_surrogate_key(['promo_id']) }} as promo_id,         
         promo_id as promotion_name,            
-        cast(discount as integer) as discount_dollars,
+        cast(discount as int) as discount_dollars,
         lower(status) as promo_status,
+        _fivetran_deleted as fivetran_deleted,
         convert_timezone('UTC', _fivetran_synced) as synced_utc
     from source
     union all
     select
-        md5('no_promo') as promo_id,
+        {{ dbt_utils.generate_surrogate_key(["\'no_promo\'"]) }} as promo_id,
         'no_promo' as promotion_name,
         0 as discount_dollars,
         'inactive' as promo_status,
+        null as fivetran_deleted,
         convert_timezone('UTC', current_timestamp) as synced_utc
 )
 

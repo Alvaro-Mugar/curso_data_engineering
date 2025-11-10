@@ -8,15 +8,16 @@ with source as (
 
 transformed as (
   select
-    md5(event_id) as event_id,
+    {{ dbt_utils.generate_surrogate_key (['event_id']) }} as event_id,
     event_id as event_uuid,
     trim(page_url) as page_url,
-    lower(trim(event_type)) as event_type,
-    md5(user_id) as user_id,
-    md5(coalesce(product_id, 'no_product_id')) as product_id,
-    nullif(trim(session_id), '') as session_id,
+    {{ dbt_utils.generate_surrogate_key (['event_type']) }} as event_type_id,
+    {{ dbt_utils.generate_surrogate_key (['user_id']) }} as user_id,
+    {{ dbt_utils.generate_surrogate_key([ "coalesce(product_id, 'no_product_id')" ]) }} as product_id,
+    {{ dbt_utils.generate_surrogate_key (['session_id']) }} as session_id,
     convert_timezone('UTC', created_at) as created_at_utc,
-    md5(coalesce(order_id, 'no_order_id')) as order_id,
+    {{ dbt_utils.generate_surrogate_key (["coalesce(order_id, 'no_order_id')"]) }} as order_id,
+    _fivetran_deleted,
     convert_timezone('UTC', _fivetran_synced) as synced_utc
   from source
 )
