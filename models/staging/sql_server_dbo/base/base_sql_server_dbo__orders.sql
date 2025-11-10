@@ -34,20 +34,20 @@ transformed as (
   from source
   union all
   select
-    {{ dbt_utils.generate_surrogate_key ("'no_order_id'") }} as order_id,
+    {{ dbt_utils.generate_surrogate_key (["\'no_order_id\'"]) }} as order_id,
     'order-0000' as order_uuid,
-    {{ dbt_utils.generate_surrogate_key (['0000-0000']) }} as shipping_service_id,
+    {{ dbt_utils.generate_surrogate_key (["\'0000-0000\'"]) }} as shipping_service_id,
     0 as shipping_cost,
-    {{ dbt_utils.generate_surrogate_key (["'address_0'"]) }} as address_id,
+    {{ dbt_utils.generate_surrogate_key (["\'address_0\'"]) }} as address_id,
     convert_timezone('UTC', current_timestamp) as created_at_utc,
-    {{ dbt_utils.generate_surrogate_key (["'no_promo'"]) }} as promo_id,
+    {{ dbt_utils.generate_surrogate_key (["\'no_promo\'"]) }} as promo_id,
     convert_timezone('UTC', current_timestamp) as estimated_delivery_at_utc,
     0 as order_cost,
-    {{ dbt_utils.generate_surrogate_key (["'user_0'"]) }} as user_id,
+    {{ dbt_utils.generate_surrogate_key (["\'user_0\'"]) }} as user_id,
     0 as order_total,
     convert_timezone('UTC', current_timestamp) as delivered_at_utc,
     '0-0' as tracking_id,
-    {{ dbt_utils.generate_surrogate_key (["'0000-0000'"]) }} as order_status_id,
+    {{ dbt_utils.generate_surrogate_key (["\'0000-0000\'"]) }} as order_status_id,
     null as _fivetran_deleted,
     convert_timezone('UTC', current_timestamp) as synced_utc
 )
