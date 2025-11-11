@@ -4,7 +4,7 @@
 
 with source as (
   select distinct shipping_service as shipping_service_name
-    from {{ ref('base_sql_server_dbo__orders') }}
+    from {{ source('sql_server_dbo', 'orders') }}
 
     {% if is_incremental() %}
 

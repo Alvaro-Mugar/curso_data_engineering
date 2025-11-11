@@ -4,7 +4,7 @@
 
 with source as (
   select distinct event_type
-    from {{ ref('stg_sql_server_dbo__events') }}
+    from {{ source('sql_server_dbo', 'events') }}
 ),
 
 transformed as (

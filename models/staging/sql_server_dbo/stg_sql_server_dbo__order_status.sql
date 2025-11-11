@@ -3,7 +3,7 @@
 ) }}
 
 with source as (
-  select distinct status from {{ ref('base_sql_server_dbo__orders') }}
+  select distinct status from {{ source('sql_server_dbo', 'orders') }}
 
     {% if is_incremental() %}
 

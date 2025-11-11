@@ -8,7 +8,7 @@ with source as (
 
 transformed as (
   select
-    {{ dbt_utils.generate_surrogate_key (['event_id']) }} as event_id,
+    {{ dbt_utils.generate_surrogate_key (['event_id', 'created_at']) }} as event_id,
     event_id as event_uuid,
     trim(page_url) as page_url,
     {{ dbt_utils.generate_surrogate_key (['event_type']) }} as event_type_id,

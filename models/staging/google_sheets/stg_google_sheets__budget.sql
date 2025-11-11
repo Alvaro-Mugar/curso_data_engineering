@@ -8,11 +8,10 @@ with source as (
 
 transformed as (
     select
-    md5(product_id || '_' || to_char(date_trunc('month', month), 'YYYY-MM')) as budget_id,
-    cast(quantity as int) as quantity_budget,
     date_trunc('month', month) as month_start,
-    md5(product_id) as product_id,
-    _fivetran_deleted,
+    {{dbt_utils.generate_surrogate_key (['product_id', 'month_start'])}} as budget_id,
+    cast(quantity as int) as quantity_budget,
+    {{ dbt_utils.generate_surrogate_key  (['product_id']) }} as product_id,
     convert_timezone('UTC', _fivetran_synced) as synced_utc
     from source
 )

@@ -4,7 +4,7 @@
 
 with source as (
   select distinct (country, state, zipcode) 
-    from {{ ref('stg_sql_server_dbo__addresses') }}
+    from {{ source('sql_server_dbo', 'addresses') }}
 ),
 
 transformed as (
