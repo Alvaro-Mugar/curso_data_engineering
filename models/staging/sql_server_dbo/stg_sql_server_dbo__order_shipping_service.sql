@@ -1,19 +1,22 @@
 {{ config(
-    materialized = 'view'
+    materialized = 'incremental'
 ) }}
 
 with source as (
-  select * from {{ ref('stg_sql_server_dbo__orders') }}
+  select distinct shipping_service as shipping_service_name
+    from {{ source('sql_server_dbo', 'orders') }}
+
+    {% if is_incremental() %}
+
+        WHERE _fivetran_synced > (SELECT MAX(_fivetran_synced) FROM {{ this }} )
+
+    {% endif %}    
 ),
 
 transformed as (
   select
-    md5(shipping_service_id) as shipping_service_id,
-    md5(order_id) as order_id,
-    nullif(trim(shipping_service), '') as shipping_service,
-    nullif(trim(speed_category), '') as speed_category,
-    cast(shipping_cost as float) as shipping_cost,
-    convert_timezone('UTC', _fivetran_synced) as synced_utc
+    {{ dbt_utils.generate_surrogate_key(['shipping_service_name']) }} as shipping_service_id,
+    shipping_service_name
   from source
 )
 

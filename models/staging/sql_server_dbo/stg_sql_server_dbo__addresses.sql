@@ -8,12 +8,11 @@ with source as (
 
 transformed as (
   select
-    md5(addresses_id) as address_id,    
-    addresses_id as address_uuid,
-    nullif(trim(to_varchar(zipcode)), '') as zipcode,
-    trim(country) as country,
+    {{ dbt_utils.generate_surrogate_key (['address_id']) }} as address_id,    
+    address_id as address_uuid,
+    {{ dbt_utils.generate_surrogate_key(['country', 'state', 'zipcode']) }} as geo_id,
     trim(address) as address_line,
-    trim(state) as state,
+    _fivetran_deleted,
     convert_timezone('UTC', _fivetran_synced) as synced_utc
   from source
 )
