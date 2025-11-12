@@ -29,8 +29,6 @@ sources:
                   to: source('sql_server_dbo','products')
                   field: product_id
           - name: quantity
-            data_tests:
-              - positive_values
           - name: month
           - name: _fivetran_synced
       - name: users

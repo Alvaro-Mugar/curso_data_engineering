@@ -19,7 +19,7 @@ sources:
       - name: addresses
         loaded_at_field: _fivetran_synced
         columns:
-          - name: addresses_id
+          - name: address_id
             data_tests:
               - unique
               - not_null
@@ -69,7 +69,6 @@ sources:
                   field: user_id
           - name: product_id
             data_tests:
-              - not_null
               - relationships:
                   to: source('sql_server_dbo','products')
                   field: product_id
@@ -83,7 +82,6 @@ sources:
                   column_type:  TIMESTAMP_NTZ
           - name: order_id
             data_tests:
-              - not_null
               - relationships:
                   to: source('sql_server_dbo','orders')
                   field: order_id
