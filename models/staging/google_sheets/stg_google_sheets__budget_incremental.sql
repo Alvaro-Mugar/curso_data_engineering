@@ -17,10 +17,11 @@ WITH stg_budget_products AS (
 
 renamed_casted AS (
     SELECT
-          _row
-        , month
-        , quantity 
-        , _fivetran_synced
+    date_trunc('month', month) as month_start,
+    {{dbt_utils.generate_surrogate_key (['product_id', 'month_start'])}} as budget_id,
+    cast(quantity as int) as quantity_budget,
+    {{ dbt_utils.generate_surrogate_key  (['product_id']) }} as product_id,
+    convert_timezone('UTC', _fivetran_synced) as synced_utc
     FROM stg_budget_products
     )
 
