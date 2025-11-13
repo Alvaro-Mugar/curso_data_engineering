@@ -4,26 +4,16 @@
 ) }}
 
 with order_items as (
-  select
-    {{ dbt_utils.generate_surrogate_key(['order_id', 'product_id']) }} as order_item_id,
-    {{ dbt_utils.generate_surrogate_key(['order_id']) }} as order_id,
-    order_id as order_uuid,
-    cast(quantity as integer) as quantity,
-    _fivetran_synced
-  from {{ source('sql_server_dbo', 'order_items') }}
+  select *
+  from {{ ref('base_slq_server_dbo__order_items') }}
   {% if is_incremental() %}
     where _fivetran_synced > (select max(_fivetran_synced) from {{ this }})
   {% endif %}
 ),
 
 orders as (
-  select
-    {{ dbt_utils.generate_surrogate_key(['order_id']) }} as order_id,
-    order_id as order_uuid,
-    {{ dbt_utils.generate_surrogate_key(["coalesce(promo_id, 'no_promo')"]) }} as promo_id,
-    cast(shipping_cost as float) as shipping_cost,
-    _fivetran_synced
-  from {{ source('sql_server_dbo', 'orders') }}
+  select *
+  from {{ source('base_slq_server_dbo__orders') }}
   {% if is_incremental() %}
     where _fivetran_synced > (select max(_fivetran_synced) from {{ this }})
   {% endif %}

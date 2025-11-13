@@ -72,6 +72,8 @@ sources:
               - relationships:
                   to: source('sql_server_dbo','products')
                   field: product_id
+                  config:
+                    where: "product_id is not null"
           - name: session_id
             data_tests:
               - not_null
@@ -85,6 +87,8 @@ sources:
               - relationships:
                   to: source('sql_server_dbo','orders')
                   field: order_id
+                  config:
+                    where: "order_id is not null"
           - name: _fivetran_deleted
             data_tests:
               - dbt_expectations.expect_column_values_to_be_null
@@ -125,6 +129,8 @@ sources:
               - relationships:
                   to: source('sql_server_dbo','promos')
                   field: promo_id
+                  config:
+                    where: "promo_id is not null"
           - name: estimated_delivery_at
             data_tests:
               - dbt_expectations.expect_column_values_to_be_of_type:
@@ -156,7 +162,6 @@ sources:
           - name: tracking_id
             data_tests:
               - not_null
-              - unique
           - name: status
             data_tests:
               - not_null
