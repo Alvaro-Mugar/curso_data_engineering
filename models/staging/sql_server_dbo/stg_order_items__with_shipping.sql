@@ -13,7 +13,7 @@ with order_items as (
 
 orders as (
   select *
-  from {{ source('base_slq_server_dbo__orders') }}
+  from {{ ref('base_sql_server_dbo__orders') }}
   {% if is_incremental() %}
     where _fivetran_synced > (select max(_fivetran_synced) from {{ this }})
   {% endif %}
